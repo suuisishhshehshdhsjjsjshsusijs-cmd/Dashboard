@@ -273,7 +273,7 @@ BLOCKED_IPS_FILE = DATA_DIR / "blocked_ips.json"
 CONFIG_FILE = DATA_DIR / "config.json"
 WHITELIST_FILE = DATA_DIR / "whitelist.json"
 import os
-API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:5000").rstrip("/")
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://sh-production-5beb.up.railway.app:5000").rstrip("/")
 
 AUTO_REFRESH_SECS = 3
 

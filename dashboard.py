@@ -272,7 +272,8 @@ ALERTS_FILE = DATA_DIR / "alerts.json"
 BLOCKED_IPS_FILE = DATA_DIR / "blocked_ips.json"
 CONFIG_FILE = DATA_DIR / "config.json"
 WHITELIST_FILE = DATA_DIR / "whitelist.json"
-API_BASE_URL = "http://localhost:5000"
+import os
+API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:5000").rstrip("/")
 
 AUTO_REFRESH_SECS = 3
 
@@ -614,9 +615,23 @@ def settings_page():
         save_json(CONFIG_FILE, config)
         st.success("✅ تم حفظ الإعدادات بنجاح!")
 
+def fetch_api_data(endpoint, default):
+    try:
+        res = requests.get(f"{API_BASE_URL}{endpoint}", timeout=2)
+        if res.status_code == 200:
+            data = res.json()
+            # التعامل مع هيكل الرد المختلف من الـ API
+            if "alerts" in data: return data["alerts"]
+            if "blocked_ips" in data: return data["blocked_ips"]
+            return data
+    except:
+        pass
+    return default
+
 def main():
-    alerts = load_json(ALERTS_FILE, [])
-    blocked_ips = load_json(BLOCKED_IPS_FILE, {})
+    # محاولة جلب البيانات من الـ API أولاً، ثم الملفات المحلية كخيار احتياطي
+    alerts = fetch_api_data("/api/alerts", load_json(ALERTS_FILE, []))
+    blocked_ips = fetch_api_data("/api/blocked", load_json(BLOCKED_IPS_FILE, {}))
     with st.sidebar:
         st.markdown("<div style='text-align:center;padding:12px 0 6px;'><div style='font-size:2rem;'>🛡️</div><div style='font-size:1rem;font-weight:900;color:#e0e6f0;'>المدافع الذكي</div><div style='font-size:0.72rem;color:#4a6a8a;margin-top:2px;'>Smart Defender v4.0</div></div>", unsafe_allow_html=True)
         st.markdown("<hr style='border-color:#1e2d4a;margin:8px 0;'>", unsafe_allow_html=True)
